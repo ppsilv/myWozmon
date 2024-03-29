@@ -162,18 +162,18 @@ Current file: bios.s
 00005Br 2               
 00005Br 2               .zeropage
 000001r 2               
-000001r 2               XAML  = $24                            ; Last "opened" location Low
-000001r 2               XAMH  = $25                            ; Last "opened" location High
-000001r 2               STL   = $26                            ; Store address Low
-000001r 2               STH   = $27                            ; Store address High
-000001r 2               L     = $28                            ; Hex value parsing Low
-000001r 2               H     = $29                            ; Hex value parsing High
-000001r 2               YSAV  = $2A                            ; Used to see if hex value is given
-000001r 2               MODE  = $2B                            ; $00=XAM, $7F=STOR, $AE=BLOCK XAM
-000001r 2               
-000001r 2               IN          = $0200                          ; Input buffer
-000001r 2               
-000001r 2               .segment "WOZMON"
+000001r 2  xx           XAML: .res 1      ;;= $24                            ; Last "opened" location Low
+000002r 2  xx           XAMH: .res 1      ;;= $25                            ; Last "opened" location High
+000003r 2  xx           STL : .res 1      ;;= $26                            ; Store address Low
+000004r 2  xx           STH : .res 1      ;;= $27                            ; Store address High
+000005r 2  xx           L   : .res 1      ;;= $28                            ; Hex value parsing Low
+000006r 2  xx           H   : .res 1      ;;= $29                            ; Hex value parsing High
+000007r 2  xx           YSAV: .res 1      ;;= $2A                            ; Used to see if hex value is given
+000008r 2  xx           MODE: .res 1      ;;= $2B                            ; $00=XAM, $7F=STOR, $AE=BLOCK XAM
+000009r 2               
+000009r 2               BIN          = $0200                          ; Input buffer
+000009r 2               
+000009r 2               .segment "WOZMON"
 000000r 2               
 000000r 2               
 000000r 2               RESET:
@@ -211,7 +211,7 @@ Current file: bios.s
 000024r 2               
 000024r 2  20 rr rr                     JSR     READ_BYTE
 000027r 2  90 FB                        BCC     NEXTCHAR        ; SE CARRY CLEAR RELE
-000029r 2  99 00 02                     STA     IN,Y           ; Add to text buffer.
+000029r 2  99 00 02                     STA     BIN,Y           ; Add to text buffer.
 00002Cr 2  20 rr rr                     JSR     ECHO           ; Display character.
 00002Fr 2  C9 0D                        CMP     #$0D           ; CR?
 000031r 2  D0 D7                        BNE     NOTCR          ; No.
@@ -223,11 +223,11 @@ Current file: bios.s
 000038r 2  0A                           ASL
 000039r 2               SETSTOR:
 000039r 2  0A                           ASL                    ; Leaves $7B if setting STOR mode.
-00003Ar 2  85 2B                        STA     MODE           ; $00 = XAM, $74 = STOR, $B8 = BLOK XAM.
+00003Ar 2  85 rr                        STA     MODE           ; $00 = XAM, $74 = STOR, $B8 = BLOK XAM.
 00003Cr 2               BLSKIP:
 00003Cr 2  C8                           INY                    ; Advance text index.
 00003Dr 2               NEXTITEM:
-00003Dr 2  B9 00 02                     LDA     IN,Y           ; Get character.
+00003Dr 2  B9 00 02                     LDA     BIN,Y           ; Get character.
 000040r 2  C9 0D                        CMP     #$0D           ; CR?
 000042r 2  F0 D6                        BEQ     GETLINE        ; Yes, done this line.
 000044r 2  C9 2E                        CMP     #$2E           ; "."?
@@ -237,12 +237,12 @@ Current file: bios.s
 00004Cr 2  F0 EB                        BEQ     SETSTOR        ; Yes, set STOR mode.
 00004Er 2  C9 52                        CMP     #$52           ; "R"?
 000050r 2  F0 3B                        BEQ     RUNPROD            ; Yes, run user program.
-000052r 2  86 28                        STX     L              ; $00 -> L.
-000054r 2  86 29                        STX     H              ;    and H.
-000056r 2  84 2A                        STY     YSAV           ; Save Y for comparison
+000052r 2  86 rr                        STX     L              ; $00 -> L.
+000054r 2  86 rr                        STX     H              ;    and H.
+000056r 2  84 rr                        STY     YSAV           ; Save Y for comparison
 000058r 2               
 000058r 2               NEXTHEX:
-000058r 2  B9 00 02                     LDA     IN,Y           ; Get character for hex test.
+000058r 2  B9 00 02                     LDA     BIN,Y           ; Get character for hex test.
 00005Br 2  49 30                        EOR     #$30           ; Map digits to $0-9.
 00005Dr 2  C9 0A                        CMP     #$0A           ; Digit?
 00005Fr 2  90 06                        BCC     DIG            ; Yes.
@@ -258,37 +258,37 @@ Current file: bios.s
 00006Br 2  A2 04                        LDX     #$04           ; Shift count.
 00006Dr 2               HEXSHIFT:
 00006Dr 2  0A                           ASL                    ; Hex digit left, MSB to carry.
-00006Er 2  26 28                        ROL     L              ; Rotate into LSD.
-000070r 2  26 29                        ROL     H              ; Rotate into MSD's.
+00006Er 2  26 rr                        ROL     L              ; Rotate into LSD.
+000070r 2  26 rr                        ROL     H              ; Rotate into MSD's.
 000072r 2  CA                           DEX                    ; Done 4 shifts?
 000073r 2  D0 F8                        BNE     HEXSHIFT       ; No, loop.
 000075r 2  C8                           INY                    ; Advance text index.
 000076r 2  D0 E0                        BNE     NEXTHEX        ; Always taken. Check next character for hex.
 000078r 2               
 000078r 2               NOTHEX:
-000078r 2  C4 2A                        CPY     YSAV           ; Check if L, H empty (no hex digits).
+000078r 2  C4 rr                        CPY     YSAV           ; Check if L, H empty (no hex digits).
 00007Ar 2  F0 99                        BEQ     ESCAPE         ; Yes, generate ESC sequence.
 00007Cr 2               
-00007Cr 2  24 2B                        BIT     MODE           ; Test MODE byte.
+00007Cr 2  24 rr                        BIT     MODE           ; Test MODE byte.
 00007Er 2  50 10                        BVC     NOTSTOR        ; B6=0 is STOR, 1 is XAM and BLOCK XAM.
 000080r 2               
-000080r 2  A5 28                        LDA     L              ; LSD's of hex data.
-000082r 2  81 26                        STA     (STL,X)        ; Store current 'store index'.
-000084r 2  E6 26                        INC     STL            ; Increment store index.
+000080r 2  A5 rr                        LDA     L              ; LSD's of hex data.
+000082r 2  81 rr                        STA     (STL,X)        ; Store current 'store index'.
+000084r 2  E6 rr                        INC     STL            ; Increment store index.
 000086r 2  D0 B5                        BNE     NEXTITEM       ; Get next item (no carry).
-000088r 2  E6 27                        INC     STH            ; Add carry to 'store index' high order.
+000088r 2  E6 rr                        INC     STH            ; Add carry to 'store index' high order.
 00008Ar 2  4C rr rr     TONEXTITEM:     JMP     NEXTITEM       ; Get next command item.
 00008Dr 2               
 00008Dr 2               RUNPROD:
-00008Dr 2  6C 24 00                     JMP     (XAML)         ; Run at current XAM index.
+00008Dr 2  6C rr rr                     JMP     (XAML)         ; Run at current XAM index.
 000090r 2               
 000090r 2               NOTSTOR:
 000090r 2  30 2B                        BMI     XAMNEXT        ; B7 = 0 for XAM, 1 for BLOCK XAM.
 000092r 2               
 000092r 2  A2 02                        LDX     #$02           ; Byte count.
-000094r 2  B5 27        SETADR:         LDA     L-1,X          ; Copy hex data to
-000096r 2  95 25                        STA     STL-1,X        ;  'store index'.
-000098r 2  95 23                        STA     XAML-1,X       ; And to 'XAM index'.
+000094r 2  B5 rr        SETADR:         LDA     L-1,X          ; Copy hex data to
+000096r 2  95 rr                        STA     STL-1,X        ;  'store index'.
+000098r 2  95 rr                        STA     XAML-1,X       ; And to 'XAM index'.
 00009Ar 2  CA                           DEX                    ; Next of 2 bytes.
 00009Br 2  D0 F7                        BNE     SETADR         ; Loop unless X = 0.
 00009Dr 2               
@@ -296,9 +296,9 @@ Current file: bios.s
 00009Dr 2  D0 14                        BNE     PRDATA         ; NE means no address to print.
 00009Fr 2  A9 0D                        LDA     #$0D           ; CR.
 0000A1r 2  20 rr rr                     JSR     ECHO           ; Output it.
-0000A4r 2  A5 25                        LDA     XAMH           ; 'Examine index' high-order byte.
+0000A4r 2  A5 rr                        LDA     XAMH           ; 'Examine index' high-order byte.
 0000A6r 2  20 rr rr                     JSR     PRBYTE         ; Output it in hex format.
-0000A9r 2  A5 24                        LDA     XAML           ; Low-order 'examine index' byte.
+0000A9r 2  A5 rr                        LDA     XAML           ; Low-order 'examine index' byte.
 0000ABr 2  20 rr rr                     JSR     PRBYTE         ; Output it in hex format.
 0000AEr 2  A9 3A                        LDA     #$3A           ; ":".
 0000B0r 2  20 rr rr                     JSR     ECHO           ; Output it.
@@ -306,21 +306,21 @@ Current file: bios.s
 0000B3r 2               PRDATA:
 0000B3r 2  A9 20                        LDA     #$20           ; Blank.
 0000B5r 2  20 rr rr                     JSR     ECHO           ; Output it.
-0000B8r 2  A1 24                        LDA     (XAML,X)       ; Get data byte at 'examine index'.
+0000B8r 2  A1 rr                        LDA     (XAML,X)       ; Get data byte at 'examine index'.
 0000BAr 2  20 rr rr                     JSR     PRBYTE         ; Output it in hex format.
-0000BDr 2  86 2B        XAMNEXT:        STX     MODE           ; 0 -> MODE (XAM mode).
-0000BFr 2  A5 24                        LDA     XAML
-0000C1r 2  C5 28                        CMP     L              ; Compare 'examine index' to hex data.
-0000C3r 2  A5 25                        LDA     XAMH
-0000C5r 2  E5 29                        SBC     H
+0000BDr 2  86 rr        XAMNEXT:        STX     MODE           ; 0 -> MODE (XAM mode).
+0000BFr 2  A5 rr                        LDA     XAML
+0000C1r 2  C5 rr                        CMP     L              ; Compare 'examine index' to hex data.
+0000C3r 2  A5 rr                        LDA     XAMH
+0000C5r 2  E5 rr                        SBC     H
 0000C7r 2  B0 C1                        BCS     TONEXTITEM     ; Not less, so no more data to output.
 0000C9r 2               
-0000C9r 2  E6 24                        INC     XAML
+0000C9r 2  E6 rr                        INC     XAML
 0000CBr 2  D0 02                        BNE     MOD8CHK        ; Increment 'examine index'.
-0000CDr 2  E6 25                        INC     XAMH
+0000CDr 2  E6 rr                        INC     XAMH
 0000CFr 2               
 0000CFr 2               MOD8CHK:
-0000CFr 2  A5 24                        LDA     XAML           ; Check low-order 'examine index' byte
+0000CFr 2  A5 rr                        LDA     XAML           ; Check low-order 'examine index' byte
 0000D1r 2  29 07                        AND     #$07           ; For MOD 8 = 0
 0000D3r 2  10 C8                        BPL     NXTPRNT        ; Always taken.
 0000D5r 2               
