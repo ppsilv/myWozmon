@@ -2,6 +2,11 @@
 ; SERIAL 16c550 DRIVER
 ;
 .setcpu "65C02"
+
+.zeropage
+
+ACC: .res 1
+
 .segment "BIOS"
 
 ;Uart registers
@@ -18,6 +23,8 @@ MCR  = $7804    ;;modem control register
 ULSR = $7805    ;;line status register
 MSR  = $7806    ;;modem status register
 SCR	 = $7807	   ;;scratch register
+
+
 
 ; Constants
 .if .not .def(CR)
@@ -120,21 +127,20 @@ NO_ERR:
 MONCOUT:
 CHROUT:	
 WRITE_BYTE:
-    PHA                     ;
+    STA     ACC                     ;
 WAIT_FOR_THR_EMPTY:	
     LDA ULSR                ; Get the line status register
     AND #THR_EMPTY          ; Check for TX empty
     BEQ WAIT_FOR_THR_EMPTY 	; loop while the THR is not empty
-	PLA                     ;	
+	LDA     ACC                     ;	
 	STA THR 				; send the byte		
 
 ;;DELAY BETWEEN CHAR SEND
-    PHA
     lda     #$FF
 @txdelay:
     dec
     bne     @txdelay
-    PLA
+    LDA     ACC
     CMP     #$0D
     BNE     FIM
     LDA     #$0A

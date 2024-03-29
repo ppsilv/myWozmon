@@ -6,7 +6,12 @@ Current file: bios.s
 000000r 1               ; SERIAL 16c550 DRIVER
 000000r 1               ;
 000000r 1               .setcpu "65C02"
-000000r 1               .segment "BIOS"
+000000r 1               
+000000r 1               .zeropage
+000000r 1               
+000000r 1  xx           ACC: .res 1
+000001r 1               
+000001r 1               .segment "BIOS"
 000000r 1               
 000000r 1               ;Uart registers
 000000r 1               ;UART_PORT   = $7800            ;;Uart address
@@ -22,6 +27,8 @@ Current file: bios.s
 000000r 1               ULSR = $7805    ;;line status register
 000000r 1               MSR  = $7806    ;;modem status register
 000000r 1               SCR	 = $7807	   ;;scratch register
+000000r 1               
+000000r 1               
 000000r 1               
 000000r 1               ; Constants
 000000r 1               .if .not .def(CR)
@@ -124,50 +131,49 @@ Current file: bios.s
 00003Ar 1               MONCOUT:
 00003Ar 1               CHROUT:
 00003Ar 1               WRITE_BYTE:
-00003Ar 1  48               PHA                     ;
-00003Br 1               WAIT_FOR_THR_EMPTY:
-00003Br 1  AD 05 78         LDA ULSR                ; Get the line status register
-00003Er 1  29 60            AND #THR_EMPTY          ; Check for TX empty
-000040r 1  F0 F9            BEQ WAIT_FOR_THR_EMPTY 	; loop while the THR is not empty
-000042r 1  68           	PLA                     ;
-000043r 1  8D 00 78     	STA THR 				; send the byte
-000046r 1               
-000046r 1               ;;DELAY BETWEEN CHAR SEND
-000046r 1  48               PHA
-000047r 1  A9 FF            lda     #$FF
-000049r 1               @txdelay:
-000049r 1  3A               dec
-00004Ar 1  D0 FD            bne     @txdelay
-00004Cr 1  68               PLA
-00004Dr 1  C9 0D            CMP     #$0D
-00004Fr 1  D0 05            BNE     FIM
-000051r 1  A9 0A            LDA     #$0A
-000053r 1  4C rr rr         JMP     WRITE_BYTE
-000056r 1               FIM:
-000056r 1  60               RTS                     ;
-000057r 1               
-000057r 1               SAVE:
-000057r 1  60           	RTS
-000058r 1               LOAD:
-000058r 1  60           	RTS
+00003Ar 1  85 rr            STA     ACC                     ;
+00003Cr 1               WAIT_FOR_THR_EMPTY:
+00003Cr 1  AD 05 78         LDA ULSR                ; Get the line status register
+00003Fr 1  29 60            AND #THR_EMPTY          ; Check for TX empty
+000041r 1  F0 F9            BEQ WAIT_FOR_THR_EMPTY 	; loop while the THR is not empty
+000043r 1  A5 rr        	LDA     ACC                     ;
+000045r 1  8D 00 78     	STA THR 				; send the byte
+000048r 1               
+000048r 1               ;;DELAY BETWEEN CHAR SEND
+000048r 1  A9 FF            lda     #$FF
+00004Ar 1               @txdelay:
+00004Ar 1  3A               dec
+00004Br 1  D0 FD            bne     @txdelay
+00004Dr 1  A5 rr            LDA     ACC
+00004Fr 1  C9 0D            CMP     #$0D
+000051r 1  D0 05            BNE     FIM
+000053r 1  A9 0A            LDA     #$0A
+000055r 1  4C rr rr         JMP     WRITE_BYTE
+000058r 1               FIM:
+000058r 1  60               RTS                     ;
 000059r 1               
-000059r 1               .include "wozmon.s"
-000059r 2               .setcpu "65C02"
-000059r 2               
-000059r 2               .zeropage
-000000r 2               
-000000r 2               XAML  = $24                            ; Last "opened" location Low
-000000r 2               XAMH  = $25                            ; Last "opened" location High
-000000r 2               STL   = $26                            ; Store address Low
-000000r 2               STH   = $27                            ; Store address High
-000000r 2               L     = $28                            ; Hex value parsing Low
-000000r 2               H     = $29                            ; Hex value parsing High
-000000r 2               YSAV  = $2A                            ; Used to see if hex value is given
-000000r 2               MODE  = $2B                            ; $00=XAM, $7F=STOR, $AE=BLOCK XAM
-000000r 2               
-000000r 2               IN          = $0200                          ; Input buffer
-000000r 2               
-000000r 2               .segment "WOZMON"
+000059r 1               SAVE:
+000059r 1  60           	RTS
+00005Ar 1               LOAD:
+00005Ar 1  60           	RTS
+00005Br 1               
+00005Br 1               .include "wozmon.s"
+00005Br 2               .setcpu "65C02"
+00005Br 2               
+00005Br 2               .zeropage
+000001r 2               
+000001r 2               XAML  = $24                            ; Last "opened" location Low
+000001r 2               XAMH  = $25                            ; Last "opened" location High
+000001r 2               STL   = $26                            ; Store address Low
+000001r 2               STH   = $27                            ; Store address High
+000001r 2               L     = $28                            ; Hex value parsing Low
+000001r 2               H     = $29                            ; Hex value parsing High
+000001r 2               YSAV  = $2A                            ; Used to see if hex value is given
+000001r 2               MODE  = $2B                            ; $00=XAM, $7F=STOR, $AE=BLOCK XAM
+000001r 2               
+000001r 2               IN          = $0200                          ; Input buffer
+000001r 2               
+000001r 2               .segment "WOZMON"
 000000r 2               
 000000r 2               
 000000r 2               RESET:
